@@ -256,16 +256,16 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
     c.Draw()
 
     c.cd()
-    pad_y_split = 0.5
+    pad_y_split = 0.55
     if self.observable == "mass" and min_pt_truth == 80:
-      pad_left_margin = 0.16
+      pad_left_margin = 0.18
     else:
-      pad_left_margin = 0.16 if self.set_logy else 0.15
+      pad_left_margin = 0.18 #0.16 if self.set_logy else 0.15
     myPad = ROOT.TPad('myPad', 'The pad', 0, pad_y_split if make_ratio_plot else 0, 1, 1)
     myPad.SetLeftMargin(pad_left_margin)
     myPad.SetTopMargin(0.03)
     myPad.SetRightMargin(0.04)
-    myPad.SetBottomMargin(0 if make_ratio_plot else 0.13)
+    myPad.SetBottomMargin(0 if make_ratio_plot else 0.18)
     if self.set_logy:
       myPad.SetLogy()
     myPad.SetTicks(1, 1)
@@ -309,16 +309,33 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
     myBlankHisto = ROOT.TH1F('myBlankHisto','Blank Histogram', n_obs_bins_truth, truth_bin_array)
     myBlankHisto.SetNdivisions(505)
     alpha = obs_label.split("_")[0]
+    alpha_string = str(alpha)+",g" if grooming_setting else str(alpha)
     if not make_ratio_plot:
-      myBlankHisto.SetXTitle(self.xtitle.replace("alpha}", "alpha}="+alpha))
+      if self.observable == "ang":
+        myBlankHisto.SetXTitle(self.xtitle.replace("#it{#alpha}}^{#it{#kappa}=1}", alpha_string+"}"))  #.replace("alpha}", "alpha}="+alpha))
+      elif self.observable == "mass":
+        if grooming_setting:
+          myBlankHisto.SetXTitle(self.xtitle.replace("{m}_{jet}", "{m}_{jet,g}"))
+        else:
+          myBlankHisto.SetXTitle(self.xtitle)
       myBlankHisto.GetXaxis().SetTitleOffset(1.02)
-      myBlankHisto.GetXaxis().SetTitleSize(0.055)
-    myBlankHisto.SetYTitle(self.ytitle.replace("alpha}", "alpha}="+alpha))
+      myBlankHisto.GetXaxis().SetTitleSize(0.06)
+    if self.observable == "ang":
+      ytit = self.ytitle.replace("#it{#alpha}}^{#it{#kappa}=1}", alpha_string+"}")  #.replace("alpha}", "alpha}="+alpha))
+      if grooming_setting:
+        myBlankHisto.SetYTitle(ytit.replace("{#sigma}_{jet}", "{#sigma}_{inc}"))
+      else:
+        myBlankHisto.SetYTitle(ytit.replace("{#sigma}_{jet}", "{#sigma}"))
+    elif self.observable == "mass":
+      if grooming_setting:
+        myBlankHisto.SetYTitle(self.ytitle.replace("{m}_{jet}", "{m}_{jet,g}").replace("{#sigma}_{jet}", "{#sigma}_{inc}"))
+      else:
+        myBlankHisto.SetYTitle(self.ytitle.replace("{#sigma}_{jet}", "{#sigma}"))
     if self.observable == "mass" and min_pt_truth == 80:
       myBlankHisto.GetYaxis().SetTitleOffset(1.35)
     else:
-      myBlankHisto.GetYaxis().SetTitleOffset(1.3 if self.set_logy else 1.15)
-    myBlankHisto.GetYaxis().SetTitleSize(0.055)
+      myBlankHisto.GetYaxis().SetTitleOffset(1) #1.3 if self.set_logy else 1)
+    myBlankHisto.GetYaxis().SetTitleSize(0.07)
 
     plot_pythia = False; plot_herwig = False;
     plot_jewel_no_recoils = False; plot_jewel_recoils = False; plot_jewel_pp = False
@@ -622,8 +639,10 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
     elif min_pt_truth == 40 and obs_label == "3":
       ymin = -0.6
     if self.set_logy:
-      maxval *= 5e1
+      maxval *= 5 if (not plot_PbPb) else (1e1 if plot_pp_data else 5)
       ymin = 5e-1 * h.GetMinimum()
+      if (ymin - 0.1) < 0 and abs(ymin - 0.1) < 0.015:  # prevent y-axis label from being cut off
+        ymin -= 0.015
     myBlankHisto.SetMinimum(ymin)
     myBlankHisto.SetMaximum(maxval)
     myBlankHisto.Draw("E")
@@ -703,19 +722,20 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
     text_latex = ROOT.TLatex()
     text_latex.SetNDC()
     #text_xval = 0.53 if plot_PbPb else 0.56
-    text_xval = 0.61
-    text_yval = 0.9;  delta_y = 0.065
+    text_xval = 0.59
+    text_yval = 0.9;  delta_y = 0.075
     if self.observable == "ang" and plot_pp_data and not plot_PbPb:
       text = 'ALICE'
     else:
       text = 'ALICE {}'.format(self.figure_approval_status)
+    text_latex.SetTextSize(0.055)
     text_latex.DrawLatex(text_xval, text_yval, text)
     text_yval -= delta_y
 
-    text_latex.SetTextSize(0.045)
+    text_latex.SetTextSize(0.055)
     if plot_PbPb:
       if not plot_pp_data:
-        text = '0-10% centrality Pb-Pb'
+        text = '0#minus10% centrality Pb#minusPb'
         text_latex.DrawLatex(text_xval, text_yval, text)
         text_yval -= delta_y
       text = '#sqrt{#it{s}_{NN}} = 5.02 TeV'
@@ -744,11 +764,11 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
 
     if grooming_setting:
       text = self.utils.formatted_grooming_label(grooming_setting) #.replace("#beta}", "#beta}_{SD}")
-      text_latex.DrawLatex(text_xval, text_yval, text)
-      text_yval -= delta_y
+      text_latex.DrawLatex(text_xval, text_yval - 0.005, text)
+      text_yval -= delta_y + 0.005
 
       if not match_data_normalization:
-        text_latex.SetTextSize(0.04)
+        text_latex.SetTextSize(0.055)
         text = ['#it{f}_{tagged}^{data} = %3.3f' % fraction_tagged]
         if plot_pythia:
           text.append('#it{f}_{tagged}^{PYTHIA} = %3.3f' % fraction_tagged_pythia)
@@ -773,44 +793,18 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
 
     maxy = 0.94
     #miny = maxy - 0.07 * n_AA_models if plot_PbPb else maxy - 0.07 * n_pp_models
-    miny = 0.65 if (plot_PbPb and plot_pp_data) else 0.55
-    myLegend = ROOT.TLegend(0.18, miny, text_xval-0.02, maxy)
-    self.utils.setup_legend(myLegend, 0.035)
+    miny = 0.65 if (plot_PbPb and plot_pp_data) else 0.75
+    myLegend = ROOT.TLegend(0.2, miny, text_xval-0.02, maxy)
+    self.utils.setup_legend(myLegend, 0.054)
     if plot_PbPb:
       if plot_pp_data:
-        myLegend.AddEntry(h, 'ALICE 0-10% Pb-Pb data', 'pe')
+        myLegend.AddEntry(h, '0#minus10% Pb#minusPb data', 'pe')
       else:
-        myLegend.AddEntry(h, 'ALICE Pb-Pb data', 'pe')
-      myLegend.AddEntry(h_sys, 'Pb-Pb syst. uncert.', 'f')
+        myLegend.AddEntry(h, 'Pb#minusPb data', 'pe')
+      myLegend.AddEntry(h_sys, 'Pb#minusPb syst. uncert.', 'f')
     if plot_pp_data:
-      myLegend.AddEntry(h_pp_data, 'ALICE pp data', 'pe')
+      myLegend.AddEntry(h_pp_data, 'pp data', 'pe')
       myLegend.AddEntry(h_pp_sys, 'pp syst. uncert.', 'f')
-    if not ignore_MC_top_panel:
-      if plot_pythia:
-        myLegend.AddEntry(hPythia_draw, 'PYTHIA8 Monash2013', 'l')
-      if plot_herwig:
-        myLegend.AddEntry(hHerwig_draw, 'Herwig7 default tune', 'l')
-      if plot_jewel_pp:
-        myLegend.AddEntry(hJewel_pp_draw, 'JEWEL pp', 'l')
-      if plot_zhang_pp:
-        myLegend.AddEntry(hZhang_pp, 'POWHEG+PYTHIA6', 'l')
-      if plot_hybrid_pp:
-        myLegend.AddEntry(hHybridNoElastic_pp, 'Hybrid model vacuum', 'f')
-        #myLegend.AddEntry(hHybridWithElastic_pp, 'Hybrid model (with elastic) baseline')
-      if plot_jetscape_pp:
-        myLegend.AddEntry(hJetscape_pp, 'JETSCAPE pp', 'f')
-      if plot_PbPb:
-        if plot_jewel_no_recoils:
-          myLegend.AddEntry(hJewel_no_recoils_draw, 'JEWEL (recoils off)', 'l')
-        if plot_jewel_recoils:
-          myLegend.AddEntry(hJewel_recoils_draw, 'JEWEL (recoils on)', 'l')
-        if plot_zhang:
-          myLegend.AddEntry(hZhang, 'Higher-Twist parton #it{E}-loss', 'l')
-        if plot_jetscape:
-          myLegend.AddEntry(hJetscape, 'JETSCAPE (MATTER+LBT)', 'f')
-        if plot_hybrid:
-          myLegend.AddEntry(hHybridNoElastic, 'Hybrid model (no elastic)', 'f')
-          myLegend.AddEntry(hHybridWithElastic, 'Hybrid model (with elastic)', 'f')
     myLegend.Draw()
 
     ##########################################################################
@@ -822,7 +816,7 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
       pad2.SetLeftMargin(pad_left_margin)
       pad2.SetTopMargin(0)
       pad2.SetRightMargin(0.04)
-      pad2.SetBottomMargin(0.13)
+      pad2.SetBottomMargin(0.18)
       #if self.set_logy:
       #  pad2.SetLogy()
       pad2.SetTicks(1, 1)
@@ -831,33 +825,40 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
 
       myBlankHisto2 = ROOT.TH1F('myBlankHisto2','Blank Histogram for Ratio', n_obs_bins_truth, truth_bin_array)
       myBlankHisto2.SetNdivisions(505)
-      myBlankHisto2.SetXTitle(self.xtitle.replace("alpha}", "alpha}="+alpha))
+      if self.observable == "ang":
+        alpha_string = str(alpha)+",g" if grooming_setting else str(alpha)
+        myBlankHisto2.SetXTitle(self.xtitle.replace("#it{#alpha}}^{#it{#kappa}=1}", alpha_string+"}"))  #.replace("alpha}", "alpha}="+alpha))
+      elif self.observable == "mass":
+        if grooming_setting:
+          myBlankHisto2.SetXTitle(self.xtitle.replace("{m}_{jet}", "{m}_{jet,g}"))
+        else:
+          myBlankHisto2.SetXTitle(self.xtitle)
       myBlankHisto2.GetXaxis().SetTitleOffset(1.02)
-      myBlankHisto2.GetXaxis().SetTitleSize(0.055)
+      myBlankHisto2.GetXaxis().SetTitleSize(0.06)
       if plot_pp_data and plot_PbPb:
-        myBlankHisto2.SetYTitle("#frac{Pb-Pb}{pp}")
+        myBlankHisto2.SetYTitle("#frac{Pb#minusPb}{pp}")
       elif plot_MC:
         myBlankHisto2.SetYTitle("#frac{Theory}{Data}")
-      myBlankHisto2.GetYaxis().SetTitleOffset(1.3 if self.set_logy else 1.15)
+      myBlankHisto2.GetYaxis().SetTitleOffset(1.3 if self.set_logy else 1.25)
       myBlankHisto2.GetYaxis().SetTitleSize(0.055)
       if plot_pp_data and plot_PbPb:
-        myBlankHisto2.SetMinimum(0.45)
+        myBlankHisto2.SetMinimum(0.5)
         if self.observable == "ang":
-          myBlankHisto2.SetMaximum(1.85)
+          myBlankHisto2.SetMaximum(1.95)
         else:
-          myBlankHisto2.SetMaximum(1.85)
+          myBlankHisto2.SetMaximum(1.95)
       elif plot_MC:
-        if min_pt_truth == 100:
-          myBlankHisto2.SetMinimum(0.35)
-        else:
-          myBlankHisto2.SetMinimum(0.5)
+        #if min_pt_truth == 100:
+        #  myBlankHisto2.SetMinimum(0.35)
+        #else:
+        myBlankHisto2.SetMinimum(0.5)
         if plot_pp_data:
-          myBlankHisto2.SetMaximum(1.85)
+          myBlankHisto2.SetMaximum(1.95)
         else:
-          if min_pt_truth == 100:
-            myBlankHisto2.SetMaximum(1.65)
-          else:
-            myBlankHisto2.SetMaximum(1.85)
+          #if min_pt_truth == 100:
+          #  myBlankHisto2.SetMaximum(1.65)
+          #else:
+          myBlankHisto2.SetMaximum(1.95)
       myBlankHisto2.Draw("E")
 
       # Draw dashed line at ratio = 1
@@ -1035,6 +1036,31 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
           hHybridWithElasticRatio.SetLineWidth(0)
           hHybridWithElasticRatio.Draw('E3 same')
 
+          # Calculate difference in last bin
+          if (self.observable == "ang" and obs_label == "2") or (self.observable == "mass") and "SD" not in obs_label:
+            last_bin = h_data_ppratio.GetNbinsX()
+            print("*** Last bin, data: %.3f" % h_sys_ppratio.GetBinContent(last_bin), \
+                  "+/- %.3f" % h_data_ppratio.GetBinError(last_bin), "(stat)",
+                  "+/- %.3f" % h_sys_ppratio.GetBinError(last_bin), "(sys)")
+
+            print("*** Last bin, Hybrid w/ el.: %.3f" % hHybridWithElasticRatio.GetBinContent(last_bin), \
+                  "+/- %.3f" % hHybridWithElasticRatio.GetBinError(last_bin))
+            diff = abs(h_sys_ppratio.GetBinContent(last_bin) - hHybridWithElasticRatio.GetBinContent(last_bin))
+            diff_uncert = math.sqrt(h_data_ppratio.GetBinError(last_bin) ** 2 + \
+                h_sys_ppratio.GetBinError(last_bin) ** 2 + \
+                hHybridWithElasticRatio.GetBinError(last_bin) ** 2)
+            sigma = diff / diff_uncert
+            print("*** Difference: %.3f" % diff, "+/- %.3f" % diff_uncert, "(%.3f sigma)" % sigma)
+
+            print("*** Last bin, Hybrid no-el.: %.3f" % hHybridNoElasticRatio.GetBinContent(last_bin), \
+                  "+/- %.3f" % hHybridNoElasticRatio.GetBinError(last_bin))
+            diff = abs(h_sys_ppratio.GetBinContent(last_bin) - hHybridNoElasticRatio.GetBinContent(last_bin))
+            diff_uncert = math.sqrt(h_data_ppratio.GetBinError(last_bin) ** 2 + \
+                h_sys_ppratio.GetBinError(last_bin) ** 2 + \
+                hHybridNoElasticRatio.GetBinError(last_bin) ** 2)
+            sigma = diff / diff_uncert
+            print("*** Difference: %.3f" % diff, "+/- %.3f" % diff_uncert, "(%.3f sigma)" % sigma)
+
       # Calculate MC ratio plots
       elif plot_MC:
         h_AA_no_error = h.Clone(h.GetName() + "_no_error")
@@ -1127,12 +1153,13 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
         maxy = 0.97
         miny = maxy - 0.06 * n_AA_models if plot_PbPb else maxy - 0.06 * n_pp_models
         maxx = 0.98
-        minx = 0.53
-        if plot_pp_data and plot_PbPb and plot_MC and \
-          self.observable == "ang" and min_pt_truth == 80 and "SD" not in obs_label:
+        minx = 0.4
+        if plot_pp_data and plot_PbPb and plot_MC and ((self.observable == "ang" \
+          and "3" in obs_label and "SD" not in obs_label and min_pt_truth == 80) or \
+          (self.observable == "mass" and "SD" not in obs_label and min_pt_truth == 40)):
           maxx -= 0.22; minx -= 0.22
         myLegend2 = ROOT.TLegend(minx, miny, maxx, maxy)
-        self.utils.setup_legend(myLegend2, 0.035)
+        self.utils.setup_legend(myLegend2, 0.041)
         if plot_jewel_no_recoils:
           myLegend2.AddEntry(hJewelNoRecoilsRatio, 'JEWEL (recoils off)', 'f')
         if plot_jewel_recoils:
@@ -1144,6 +1171,43 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
         if plot_hybrid:
           myLegend2.AddEntry(hHybridNoElasticRatio, 'Hybrid model (no elastic)', 'f')
           myLegend2.AddEntry(hHybridWithElasticRatio, 'Hybrid model (with elastic)', 'f')
+        myLegend2.Draw()
+      else:  # if not ignore_MC_top_panel:
+        maxy = 0.97
+        miny = maxy - 0.06 * n_AA_models if plot_PbPb else maxy - 0.045 * n_pp_models
+        maxx = 0.98
+        minx = 0.39 if plot_PbPb else 0.48
+        if self.observable == "mass" or plot_pp_data and not plot_PbPb and plot_MC and \
+          self.observable == "ang" and "SD" not in obs_label and min_pt_truth in [60, 80]:
+            maxx -= 0.2 if plot_PbPb else 0.28
+            minx -= 0.2 if plot_PbPb else 0.28
+        myLegend2 = ROOT.TLegend(minx, miny, maxx, maxy)
+        self.utils.setup_legend(myLegend2, 0.042)
+        if plot_pythia:
+          myLegend2.AddEntry(hPythia_draw, 'PYTHIA8 Monash2013', 'l')
+        if plot_herwig:
+          myLegend2.AddEntry(hHerwig_draw, 'Herwig7 default tune', 'l')
+        if plot_jewel_pp:
+          myLegend2.AddEntry(hJewel_pp_draw, 'JEWEL pp', 'l')
+        if plot_zhang_pp:
+          myLegend2.AddEntry(hZhang_pp, 'POWHEG+PYTHIA6', 'l')
+        if plot_hybrid_pp:
+          myLegend2.AddEntry(hHybridNoElastic_pp, 'Hybrid model vacuum', 'f')
+          #myLegend2.AddEntry(hHybridWithElastic_pp, 'Hybrid model (with elastic) baseline')
+        if plot_jetscape_pp:
+          myLegend2.AddEntry(hJetscape_pp, 'JETSCAPE pp', 'f')
+        if plot_PbPb:
+          if plot_jewel_no_recoils:
+            myLegend2.AddEntry(hJewel_no_recoils_draw, 'JEWEL (recoils off)', 'l')
+          if plot_jewel_recoils:
+            myLegend2.AddEntry(hJewel_recoils_draw, 'JEWEL (recoils on)', 'l')
+          if plot_jetscape:
+            myLegend2.AddEntry(hJetscape, 'JETSCAPE (MATTER+LBT)', 'f')
+          if plot_zhang:
+            myLegend2.AddEntry(hZhang, 'Higher-Twist parton #it{E}-loss', 'l')
+          if plot_hybrid:
+            myLegend2.AddEntry(hHybridNoElastic, 'Hybrid model (no elastic)', 'f')
+            myLegend2.AddEntry(hHybridWithElastic, 'Hybrid model (with elastic)', 'f')
         myLegend2.Draw()
 
     ##########################################################################
@@ -2064,7 +2128,7 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
           myBlankHisto.SetMinimum(2e-4) # Don't draw 0 on top panel
         else:
           myBlankHisto.SetMinimum(0.)
-        myBlankHisto.GetYaxis().SetTitleSize(0.065)
+        myBlankHisto.GetYaxis().SetTitleSize(0.06)
         myBlankHisto.GetYaxis().SetTitleOffset(1.2)
         myBlankHisto.GetYaxis().SetLabelSize(0.06)
         myBlankHisto.Draw('E')
@@ -2090,12 +2154,12 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
             if self.is_pp:
               myBlankHisto2.SetYTitle("#frac{Data}{%s}" % MC)
             else:
-              myBlankHisto2.SetYTitle("#frac{Pb-Pb}{%s}" % MC)
+              myBlankHisto2.SetYTitle("#frac{Pb#minusPb}{%s}" % MC)
           elif plot_pp_data:
             if self.use_prev_result:
               myBlankHisto2.SetYTitle("#frac{5.02 TeV}{2.76 TeV}")
             else:
-              myBlankHisto2.SetYTitle("#frac{Pb-Pb}{pp}")
+              myBlankHisto2.SetYTitle("#frac{Pb#minusPb}{pp}")
           myBlankHisto2.GetYaxis().SetTitleSize(20)
           myBlankHisto2.GetYaxis().SetTitleFont(43)
           myBlankHisto2.GetYaxis().SetTitleOffset(3)
@@ -2157,7 +2221,7 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
             pad3.cd()
 
             myBlankHisto3 = myBlankHisto2.Clone("myBlankHisto3")
-            myBlankHisto3.SetYTitle("#frac{Pb-Pb}{pp}")
+            myBlankHisto3.SetYTitle("#frac{Pb#minusPb}{pp}")
             myBlankHisto3.SetXTitle(xtitle)
             myBlankHisto3.GetXaxis().SetTitleSize(30)
             myBlankHisto3.GetXaxis().SetTitleFont(43)
@@ -2407,15 +2471,15 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
     for i, h, text in zip(range(len(h_list)), h_list, text_list):
       if i < 2:
         if single_alpha and plot_ratio and plot_pp_data and plot_MC:
-          myLegend.AddEntry(h, "0-10% Pb-Pb data") #text + " (girth)", 'pe')
+          myLegend.AddEntry(h, "0#minus10% Pb#minusPb data") #text + " (girth)", 'pe')
         else:
           myLegend.AddEntry(h, text, 'pe')
       else:
         myLegend2.AddEntry(h, text, 'pe')
-    myLegend.AddEntry(h_sys, 'Pb-Pb syst. uncert.', 'f')
+    myLegend.AddEntry(h_sys, 'Pb#minusPb syst. uncert.', 'f')
     if plot_pp_data:
       if self.use_prev_result:
-        myLegend.AddEntry(h_pp_data, 'Pb-Pb @ 2.76 TeV', 'pe')
+        myLegend.AddEntry(h_pp_data, 'Pb#minusPb @ 2.76 TeV', 'pe')
         if plot_errors:
           myLegend.AddEntry(h_pp_sys, '2.76 TeV syst. uncert.', 'f')
       elif not (plot_MC and single_alpha):
@@ -2440,7 +2504,7 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
     if not plot_ratio:
       text_xval = 0.26
     text_yval = 0.85
-    delta_y = 0.065 if single_alpha and plot_pp_data and plot_MC else 0.06
+    delta_y = 0.075 # if single_alpha and plot_pp_data and plot_MC else 0.065
     text_latex = ROOT.TLatex()
     text_latex.SetNDC()
     text = 'ALICE {}'.format(self.figure_approval_status)
@@ -2450,13 +2514,13 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
     #if single_alpha and plot_ratio and plot_pp_data and plot_MC:
     text = '#sqrt{#it{s}_{NN}} = 5.02 TeV'
     #else:
-    #  text = '0-10% Pb-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV'
-    text_latex.SetTextSize(0.045)
+    #  text = '0#minus10% Pb-Pb #sqrt{#it{s}_{NN}} = 5.02 TeV'
+    text_latex.SetTextSize(0.055)
     text_latex.DrawLatex(text_xval, text_yval, text)
     text_yval -= delta_y
 
     text = 'Ch.-particle anti-#it{k}_{T} jets'
-    text_latex.SetTextSize(0.045)
+    text_latex.SetTextSize(0.055)
     text_latex.DrawLatex(text_xval, text_yval, text)
     text_yval -= delta_y
 
@@ -2465,17 +2529,17 @@ class RunAnalysisAng(run_analysis.RunAnalysis):
     text_yval -= delta_y
 
     text = str(min_pt_truth) + ' < #it{p}_{T}^{ch jet} < ' + str(max_pt_truth) + ' GeV/#it{c}'
-    text_latex.SetTextSize(0.045)
+    text_latex.SetTextSize(0.055)
     text_latex.DrawLatex(text_xval, text_yval, text)
     text_yval -= delta_y
 
     if grooming_setting:
       text = self.utils.formatted_grooming_label(grooming_setting) #.replace("#beta}", "#beta}_{SD}")
-      text_latex.DrawLatex(text_xval, text_yval, text)
-      text_yval -= delta_y
+      text_latex.DrawLatex(text_xval, text_yval - 0.005, text)
+      text_yval -= delta_y + 0.005
 
     if not (single_alpha and plot_ratio and plot_pp_data and plot_MC):
-      text = "0-10% Pb-Pb data"
+      text = "0#minus10% Pb#minusPb data"
       xmin = legend_xmin+0.12 if (plot_ratio and plot_pp_data and plot_MC) else legend_xmin+0.09
       if not plot_ratio:
         xmin -= 0.02

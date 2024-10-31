@@ -1282,7 +1282,7 @@ class RunAnalysis(common_base.CommonBase):
                                  min_pt_truth, max_pt_truth)
       
     # Write submission files
-    self.hepdata_submission.create_files(self.hepdata_dir)
+    self.hepdata_submission.create_files(self.hepdata_dir, remove_old=True)
 
   #----------------------------------------------------------------------
   def add_hepdata_table(self, i, jetR, obs_label, obs_setting, grooming_setting, min_pt, max_pt):
@@ -1328,7 +1328,7 @@ class RunAnalysis(common_base.CommonBase):
  
     # Define uncertainties
     stat = hepdata_lib.Uncertainty('stat', is_symmetric=True)
-    stat.values = [float('{:.2g}'.format(dy)) for dy in h['dy']]
+    stat.values = h['dy'] #float('{:.2g}'.format(dy))
  
     # Add tables to submission
     table.add_variable(x)
@@ -1340,7 +1340,8 @@ class RunAnalysis(common_base.CommonBase):
                                                       int(min_pt), int(max_pt))
     h_sys_unfolding = hepdata_reader_systematics.read_hist_1d(getattr(self, name).GetName())
     sys_unfolding = hepdata_lib.Uncertainty('sys,unfolding', is_symmetric=True)
-    sys_unfolding.values = ['{:.2g}%'.format(y) for y in h_sys_unfolding['y']]
+    #sys_unfolding_percent = h_sys_unfolding['y']  # Percent uncertainty
+    sys_unfolding.values = [h_sys_unfolding['y'][i] * y.values[i] / 100. for i in range(len(y.values))]
     y.add_uncertainty(sys_unfolding)
 
     # Add generator systematic
@@ -1348,7 +1349,8 @@ class RunAnalysis(common_base.CommonBase):
                                                       int(min_pt), int(max_pt))
     h_sys_generator = hepdata_reader_systematics.read_hist_1d(getattr(self, name).GetName())
     sys_generator = hepdata_lib.Uncertainty('sys,generator', is_symmetric=True)
-    sys_generator.values = ['{:.2g}%'.format(y) for y in h_sys_generator['y']]
+    #sys_generator_percent = h_sys_generator['y']  # Percent uncertainty
+    sys_generator.values = [h_sys_generator['y'][i] * y.values[i] / 100. for i in range(len(y.values))]
     y.add_uncertainty(sys_generator)
 
     # Add systematic uncertainty breakdown
@@ -1364,7 +1366,8 @@ class RunAnalysis(common_base.CommonBase):
 
         h_sys = hepdata_reader_systematics.read_hist_1d(h_sys.GetName())
         sys = hepdata_lib.Uncertainty('sys,{}'.format(systematic), is_symmetric=True)
-        sys.values = ['{:.2g}%'.format(y) for y in h_sys['y']]
+        #sys_percent = h_sys['y']  # Percent uncertainty
+        sys.values = [h_sys['y'][i] * y.values[i] / 100. for i in range(len(y.values))]
         y.add_uncertainty(sys)
 
     # Add table to the submission
@@ -1375,7 +1378,8 @@ class RunAnalysis(common_base.CommonBase):
   
     index = 1
     index += i
-    if self.observable == 'ang':
+    # Jet angularities in pp
+    if self.observable == 'ang' and self.is_pp:
         if np.isclose(jetR, 0.4):
             if np.isclose(min_pt, 40.):
                 index += 8
@@ -1392,68 +1396,200 @@ class RunAnalysis(common_base.CommonBase):
                 index += 48
             if np.isclose(min_pt, 80.):
                 index += 56
-                
+
+    # Jet angularities in Pb-Pb and mass in pp and Pb-Pb
+    elif self.observable == 'ang' and not self.is_pp:
+        #if np.isclose(min_pt, 40.):
+        #    index += 0
+        if np.isclose(min_pt, 60.):
+            index += 8
+        elif np.isclose(min_pt, 80.):
+            index += 16
+        elif np.isclose(min_pt, 100.):
+            index += 24
+    elif self.observable == "mass":
+        if self.is_pp:
+            if np.isclose(min_pt, 40.):
+                index += 32
+            elif np.isclose(min_pt, 60.):
+                index += 34
+            elif np.isclose(min_pt, 80.):
+                index += 36
+        else:  # Pb-Pb
+            if np.isclose(min_pt, 40.):
+                index += 38
+            if np.isclose(min_pt, 60.):
+                index += 40
+            elif np.isclose(min_pt, 80.):
+                index += 42
+            elif np.isclose(min_pt, 100.):
+                index += 44
+
     return index
 
   #----------------------------------------------------------------------
   def set_hepdata_table_descriptors(self, table, jetR, obs_label, obs_setting, grooming_setting, min_pt, max_pt):
 
     if self.observable == 'mass':
-        print("\nWARNING! Implement set_hepdata_table_descriptors() in substructure/run_analysis.py !!")
 
         if grooming_setting and 'sd' in grooming_setting.keys():
+            if np.isclose(min_pt, 40.):
+                table.location = "Figure 1, right (letter), Figure 18, bottom (public note)."
+            if np.isclose(min_pt, 60.):
+                table.location = "Figure 19, bottom (public note)."
+            if np.isclose(min_pt, 80.):
+                table.location = "Figure 20, bottom (public note)."
+            if np.isclose(min_pt, 100.):
+                table.location = "Figure 21, right (public note)."
+
+            table.description = r'Groomed jet invariant mass $m_{\mathrm{jet},g}$ in ' + (r"pp" if self.is_pp else r"Pb--Pb") + r" data."
+            table.description += '\n'
+            table.description += r'${}<p_{{\mathrm{{T}}}}^{{\mathrm{{ch jet}}}}<{}$ GeV/$c$, Soft Drop $z_{{\mathrm{{cut}}}}=0.2, \beta=0$.'.format(min_pt, max_pt)
+            table.description += '\n\nNote: The first bin corresponds to the Soft Drop untagged fraction.'
+
             x_label = r'$m_{\textrm{jet},g}$'
             y_label = r'$\frac{1}{\sigma_{inc}} \frac{d\sigma}{d m_{\textrm{jet},g}}$'
 
         else:
+            if np.isclose(min_pt, 40.):
+                table.location = "Figure 1, left (letter), Figure 18, top (public note)."
+            if np.isclose(min_pt, 60.):
+                table.location = "Figure 19, top (public note)."
+            if np.isclose(min_pt, 80.):
+                table.location = "Figure 20, top (public note)."
+            if np.isclose(min_pt, 100.):
+                table.location = "Figure 21, left (public note)."
+
+            table.description = r'Jet invariant mass $m_\mathrm{jet}$ in ' + (r"pp" if self.is_pp else r"Pb--Pb") + r" data."
+            table.description += '\n'
+            table.description += r'${}<p_{{\mathrm{{T}}}}^{{\mathrm{{ch jet}}}}<{}$ GeV/$c$.'.format(min_pt, max_pt)
+
             x_label = r'$m_\textrm{jet}$'
             y_label = r'$\frac{1}{\sigma} \frac{d\sigma}{d m_\textrm{jet}}$'
+
+        table.description += '\n\n'
+        table.description += r'For the "trkeff" and "generator" systematic uncertainty sources, the signed systematic uncertainty breakdowns ($\pm$ vs. $\mp$), denote correlation across bins (both within this table, and across tables). For the remaining sources ("unfolding", "random_mass") no correlation information is specified ($\pm$ is always used).'
 
     elif self.observable == 'ang':
 
         if grooming_setting and 'sd' in grooming_setting.keys():
-        
-            if np.isclose(jetR, 0.4):
-                table.location = 'Figure 3.'
-            elif np.isclose(jetR, 0.2):
-                table.location = 'Figure 4.'
-                
+
+            if self.is_pp:
+                if np.isclose(jetR, 0.4):
+                    table.location = 'Figure 3.'
+                elif np.isclose(jetR, 0.2):
+                    table.location = 'Figure 4.'
+            else:  # Pb-Pb
+                if obs_label[0:2] == "1_":
+                    if np.isclose(min_pt, 40.):
+                        table.location = "Figure 3, left (letter), Figure 2, bottom (public note)."
+                    elif np.isclose(min_pt, 60.):
+                        table.location = "Figure 3, bottom (public note)."
+                    elif np.isclose(min_pt, 80.):
+                        table.location = "Figure 4, bottom (public note)."
+                    elif np.isclose(min_pt, 100.):
+                        table.location = "Figure 5, right (public note)."
+                if obs_label[0:2] == "1.":
+                    if np.isclose(min_pt, 40.):
+                        table.location = "Figure 6, bottom (public note)."
+                    elif np.isclose(min_pt, 60.):
+                        table.location = "Figure 7, bottom (public note)."
+                    elif np.isclose(min_pt, 80.):
+                        table.location = "Figure 8, bottom (public note)."
+                    elif np.isclose(min_pt, 100.):
+                        table.location = "Figure 9, right (public note)."
+                if obs_label[0] == "2":
+                    if np.isclose(min_pt, 40.):
+                        table.location = "Figure 3, center (letter), Figure 10, bottom (public note)."
+                    elif np.isclose(min_pt, 60.):
+                        table.location = "Figure 11, bottom (public note)."
+                    elif np.isclose(min_pt, 80.):
+                        table.location = "Figure 12, bottom (public note)."
+                    elif np.isclose(min_pt, 100.):
+                        table.location = "Figure 13, right (public note)."
+                if obs_label[0] == "3":
+                    if np.isclose(min_pt, 40.):
+                        table.location = "Figure 3, right (letter), Figure 14, bottom (public note)."
+                    elif np.isclose(min_pt, 60.):
+                        table.location = "Figure 15, bottom (public note)."
+                    elif np.isclose(min_pt, 80.):
+                        table.location = "Figure 16, bottom (public note)."
+                    elif np.isclose(min_pt, 100.):
+                        table.location = "Figure 17, right (public note)."
             table.description = r'Groomed jet angularity $\lambda_{{\alpha,g}}$ for $\alpha = {}$.'.format(obs_setting)
             table.description += '\n'
-            table.description += r'${}<p_{{\mathrm{{T}}}}^{{\mathrm{{ch jet}}}}<{}$, Soft Drop $z_{{\mathrm{{cut}}}}=0.2, \beta=0$.'.format(min_pt, max_pt)
+            table.description += r'${}<p_{{\mathrm{{T}}}}^{{\mathrm{{ch jet}}}}<{}$ GeV/$c$, Soft Drop $z_{{\mathrm{{cut}}}}=0.2, \beta=0$.'.format(min_pt, max_pt)
             table.description += '\n\nNote: The first bin corresponds to the Soft Drop untagged fraction.'
-            
+
             x_label = r'$\lambda_{\alpha,g}$'
             y_label = r'$\frac{1}{\sigma_{inc}} \frac{d\sigma}{d\lambda_{\alpha,g}}$'
-            
-        else:
-        
-            if np.isclose(jetR, 0.4):
-                table.location = 'Figure 1.'
-            elif np.isclose(jetR, 0.2):
-                table.location = 'Figure 2.'
 
+        else:
+
+            if self.is_pp:
+                if np.isclose(jetR, 0.4):
+                    table.location = 'Figure 1.'
+                elif np.isclose(jetR, 0.2):
+                    table.location = 'Figure 2.'
+            else:  # Pb-Pb
+                if obs_label == "1":
+                    if np.isclose(min_pt, 40.):
+                        table.location = "Figure 2, left (letter), Figure 2, top (public note)."
+                    elif np.isclose(min_pt, 60.):
+                        table.location = "Figure 3, top (public note)."
+                    elif np.isclose(min_pt, 80.):
+                        table.location = "Figure 4, top (public note)."
+                    elif np.isclose(min_pt, 100.):
+                        table.location = "Figure 5, left (public note)."
+                if obs_label == "1.5":
+                    if np.isclose(min_pt, 40.):
+                        table.location = "Figure 6, top (public note)."
+                    elif np.isclose(min_pt, 60.):
+                        table.location = "Figure 7, top (public note)."
+                    elif np.isclose(min_pt, 80.):
+                        table.location = "Figure 8, top (public note)."
+                    elif np.isclose(min_pt, 100.):
+                        table.location = "Figure 9, left (public note)."
+                if obs_label == "2":
+                    if np.isclose(min_pt, 40.):
+                        table.location = "Figure 2, center (letter), Figure 10, top (public note)."
+                    elif np.isclose(min_pt, 60.):
+                        table.location = "Figure 11, top (public note)."
+                    elif np.isclose(min_pt, 80.):
+                        table.location = "Figure 12, top (public note)."
+                    elif np.isclose(min_pt, 100.):
+                        table.location = "Figure 13, left (public note)."
+                if obs_label == "3":
+                    if np.isclose(min_pt, 40.):
+                        table.location = "Figure 2, right (letter), Figure 14, top (public note)."
+                    elif np.isclose(min_pt, 60.):
+                        table.location = "Figure 15, top (public note)."
+                    elif np.isclose(min_pt, 80.):
+                        table.location = "Figure 16, top (public note)."
+                    elif np.isclose(min_pt, 100.):
+                        table.location = "Figure 17, left (public note)."
             table.description = r'Jet angularity $\lambda_{{\alpha}}$ for $\alpha = {}$.'.format(obs_setting)
             table.description += '\n'
-            table.description += r'${}<p_{{\mathrm{{T}}}}^{{\mathrm{{ch jet}}}}<{}$.'.format(min_pt, max_pt)
-            
+            table.description += r'${}<p_{{\mathrm{{T}}}}^{{\mathrm{{ch jet}}}}<{}$ GeV/$c$.'.format(min_pt, max_pt)
+
             x_label = r'$\lambda_{{\alpha}}$'
             y_label = r'$\frac{1}{\sigma} \frac{d\sigma}{d\lambda_{\alpha}}$'
-          
+
         table.description += '\n\n'
         table.description += r'For the "trkeff" and "generator" systematic uncertainty sources, the signed systematic uncertainty breakdowns ($\pm$ vs. $\mp$), denote correlation across bins (both within this table, and across tables). For the remaining sources ("unfolding", "random_mass") no correlation information is specified ($\pm$ is always used).'
-            
-        if np.isclose(min_pt, 20.):
-            table.location += ' upper left'
-        elif np.isclose(min_pt, 40.):
-            table.location += ' upper right'
-        elif np.isclose(min_pt, 60.):
-            table.location += ' lower left'
-        elif np.isclose(min_pt, 80.):
-            table.location += ' lower right'
-            
+
+        if self.is_pp:
+            if np.isclose(min_pt, 20.):
+                table.location += ' upper left'
+            elif np.isclose(min_pt, 40.):
+                table.location += ' upper right'
+            elif np.isclose(min_pt, 60.):
+                table.location += ' lower left'
+            elif np.isclose(min_pt, 80.):
+                table.location += ' lower right'
+
     elif self.observable in ['zg', 'theta_g']:
-            
+
         if self.observable == 'zg':
             table.description = r'Groomed jet momentum splitting fraction $z_{{\mathrm{g}}}$'
             x_label = r'$z_{{\mathrm{g}}}$'
@@ -1462,23 +1598,23 @@ class RunAnalysis(common_base.CommonBase):
                 table.location = 'Figure 2 (right)'
             elif np.isclose(jetR, 0.2):
                 table.location = 'Figure 2 (left)'
-            
+
         elif self.observable == 'theta_g':
             table.description = r'Groomed jet radius (scaled) $\theta_{{\mathrm{g}}}$'
             x_label = r'$\theta_{{\mathrm{g}}}$'
             y_label = r'$\frac{1}{\sigma_{inc}} \frac{d\sigma}{d\theta_{{\mathrm{g}}}}$'
             table.location = 'Figure 4'
-            
+
         table.description += '\n'
         table.description += r'${}<p_{{\mathrm{{T}}}}^{{\mathrm{{ch jet}}}}<{}$, Soft Drop $z_{{\mathrm{{cut}}}}=0.2, \beta=0$.'.format(min_pt, max_pt)
         table.description += '\n\nNote: The first bin corresponds to the Soft Drop untagged fraction.'
-        
+
         table.description += '\n\n'
         if self.is_pp:
             table.description += r'For the "trkeff" and "generator" systematic uncertainty sources, the signed systematic uncertainty breakdowns ($\pm$ vs. $\mp$), denote correlation across bins (both within this table, and across tables for a given centrality). For the remaining sources ("unfolding") no correlation information is specified ($\pm$ is always used).'
         else:
             table.description += r'For the "trkeff" systematic uncertainty sources, the signed systematic uncertainty breakdowns ($\pm$ vs. $\mp$), denote correlation across bins (both within this table, and across tables for a given centrality). For the remaining sources ("unfolding", "subtraction", "thermal_closure") no correlation information is specified ($\pm$ is always used).'
-        
+
     return x_label, y_label
 
   #----------------------------------------------------------------------
