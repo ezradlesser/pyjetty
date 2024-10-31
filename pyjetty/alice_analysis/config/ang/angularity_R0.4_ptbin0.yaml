@@ -21,7 +21,7 @@ ang:
   common_settings:
     xtitle: '#it{#lambda}_{#it{#alpha}}^{#it{#kappa}=1}'
     ytitle: '#frac{1}{#it{#sigma}_{jet}} #frac{d#it{#sigma}}{d#it{#lambda}_{#it{#alpha}}^{#it{#kappa}=1}}'
-    pt_bins_reported: [10, 20]
+    pt_bins_reported: [10, 20, 40]
     plot_overlay_list:
       - ['config_R0.4_1', 'config_R0.4_1.5', 'config_R0.4_2', 'config_R0.4_3']
     #  - ['config_R0.4_1_SD', 'config_R0.4_1.5_SD', 'config_R0.4_2_SD', 'config_R0.4_3_SD']
@@ -35,14 +35,14 @@ ang:
     pt_bins_truth:  [5, 10, 20, 40, 60, 80, 100, 150, 200]
     pt_bins_det: [5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200]
     pt_bins_det_sys_truncation: [10, 15, 20, 25, 30, 40, 50, 60, 80, 100]
-    obs_bins_truth: [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.8]
-    obs_max_reported: [0.5]
+    obs_bins_truth:  [0.0, 0.08, 0.18, 0.28, 0.38, 0.52, 0.8]
+    obs_max_reported: [0.52, 0.52]
     obs_bins_det: [0, 0.02, 0.05, 0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 0.2, 0.22, 0.24,
-                   0.26, 0.28, 0.3, 0.33, 0.36, 0.4, 0.45, 0.5, 0.55, 0.65, 0.8]
+                   0.26, 0.28, 0.3, 0.34, 0.38, 0.42, 0.46, 0.5, 0.6, 0.8]
     obs_bins_det_sys_binning: [0.0, 0.025, 0.05, 0.075, 0.1, 0.12, 0.15, 0.18, 0.2, 0.22,
-                               0.25, 0.28, 0.3, 0.32, 0.35, 0.4, 0.45, 0.5, 0.8]
+                               0.25, 0.28, 0.3, 0.32, 0.35, 0.4, 0.45, 0.55, 0.8]
     #reg_param:
-    #  0.4: 6
+    #  0.4: 5
 
   config_R0.4_1.5:
     R: 0.4
@@ -50,14 +50,14 @@ ang:
     pt_bins_truth:  [5, 10, 20, 40, 60, 80, 100, 150, 200]
     pt_bins_det: [5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200]
     pt_bins_det_sys_truncation: [10, 15, 20, 25, 30, 40, 50, 60, 80, 100]
-    obs_bins_truth:  [0.0, 0.03, 0.06, 0.09, 0.12, 0.16, 0.20, 0.24, 0.32, 0.5, 0.75]
-    obs_max_reported: [0.32]
+    obs_bins_truth:  [0.0, 0.04, 0.09, 0.15, 0.24, 0.35, 0.45, 0.7]
+    obs_max_reported: [0.35, 0.35]
     obs_bins_det: [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.1, 0.12,
                    0.14, 0.16, 0.18, 0.20, 0.22, 0.24, 0.28, 0.32, 0.38, 0.45, 0.5, 0.75]
     obs_bins_det_sys_binning: [0, 0.015, 0.03, 0.045, 0.06, 0.075, 0.09, 0.11, 0.13, 0.15,
                                0.17, 0.19, 0.21, 0.23, 0.26, 0.29, 0.33, 0.37, 0.48, 0.75]
     #reg_param:
-    #  0.4: 6
+    #  0.4: 5
 
   config_R0.4_2:
     R: 0.4
@@ -65,14 +65,14 @@ ang:
     pt_bins_truth:  [5, 10, 20, 40, 60, 80, 100, 150, 200]
     pt_bins_det: [5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200]
     pt_bins_det_sys_truncation: [10, 15, 20, 25, 30, 40, 50, 60, 80, 100]
-    obs_bins_truth: [0.0, 0.02, 0.04, 0.06, 0.09, 0.12, 0.15, 0.18, 0.25, 0.4, 0.7]
-    obs_max_reported: [0.25]
+    obs_bins_truth: [0.0, 0.025, 0.05, 0.09, 0.13, 0.18, 0.3, 0.35, 0.5, 0.7]
+    obs_max_reported: [0.3, 0.3]
     obs_bins_det: [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1, 0.11, 0.12,
-                   0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.2, 0.22, 0.25, 0.3, 0.4, 0.5, 0.7]
+                   0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.2, 0.22, 0.25, 0.3, 0.35, 0.4, 0.5, 0.7]
     obs_bins_det_sys_binning: [0, 0.015, 0.025, 0.035, 0.045, 0.055, 0.065, 0.075, 0.085, 0.1,
-                   0.11, 0.13, 0.16, 0.18, 0.22, 0.25, 0.32, 0.42, 0.55, 0.7]
+                   0.11, 0.13, 0.16, 0.18, 0.22, 0.25, 0.32, 0.37, 0.42, 0.55, 0.7]
     #reg_param:
-    #  0.4: 6
+    #  0.4: 5
 
   config_R0.4_3:
     R: 0.4
@@ -80,14 +80,14 @@ ang:
     pt_bins_truth:  [5, 10, 20, 40, 60, 80, 100, 150, 200]
     pt_bins_det: [5, 10, 15, 20, 25, 30, 40, 50, 60, 80, 100, 120, 150, 200]
     pt_bins_det_sys_truncation: [10, 15, 20, 25, 30, 40, 50, 60, 80, 100]
-    obs_bins_truth: [0.0, 0.005, 0.01, 0.015, 0.025, 0.035, 0.05, 0.065, 0.08, 0.1, 0.2, 0.3, 0.5]
-    obs_max_reported: [0.2]
+    obs_bins_truth: [0.0, 0.01, 0.03, 0.05, 0.075, 0.12, 0.19, 0.25, 0.35, 0.5]
+    obs_max_reported: [0.19, 0.19]
     obs_bins_det: [0, 0.002, 0.005, 0.008, 0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045,
-                   0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5]
-    obs_bins_det_sys_binning: [0, 0.003, 0.006, 0.009, 0.015, 0.025, 0.035, 0.045, 0.055, 
-                               0.065, 0.075, 0.085, 0.095, 0.12, 0.16, 0.2, 0.26, 0.32, 0.5]
+                   0.05, 0.055, 0.06, 0.065, 0.07, 0.075, 0.08, 0.09, 0.1, 0.12, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5]
+    obs_bins_det_sys_binning: [0, 0.003, 0.006, 0.009, 0.015, 0.025, 0.035, 0.045, 0.055,
+                               0.065, 0.075, 0.085, 0.095, 0.12, 0.16, 0.2, 0.26, 0.32, 0.42, 0.5]
     #reg_param:
-    #  0.4: 6
+    #  0.4: 5
 
   ############################################################################
   # Different R & alpha configurations for SoftDrop
@@ -163,7 +163,7 @@ output_dir: "/rstorage/alice/AnalysisResults/ang/pp/AngR04_ptbin0"
 roounfold_path: "/home/ezra/heppy/external/roounfold/roounfold-current/lib/libRooUnfold.so"
 
 analysis_observable: 'ang'
-do_unfolding: True
+do_unfolding: False
 force_rebin: False
 do_systematics: True
 do_plot_final_result: True
@@ -188,15 +188,25 @@ systematics_list:
   - fastsim_generator1
 #  - fastsim_generator2
 
+## Old files (used for inclusive jet paper)
+main_data: '/rstorage/alice/AnalysisResults/ang/287220/AnalysisResultsFinal.root'
+main_response: '/rstorage/alice/AnalysisResults/ang/351487/AnalysisResultsFinal.root'
+trkeff_response: '/rstorage/alice/AnalysisResults/ang/351489/AnalysisResultsFinal.root'
+randmass_data: '/rstorage/alice/AnalysisResults/ang/287383/AnalysisResultsFinal.root'
+randmass_response: '/rstorage/alice/AnalysisResults/ang/351488/AnalysisResultsFinal.root'
+fastsim_response: ['/rstorage/alice/AnalysisResults/ang/287385/AnalysisResultsFinal.root',
+                   '/rstorage/alice/AnalysisResults/ang/287386/AnalysisResultsFinal.root']
+
+## New files (with mass)
 # Paths to processing output, to be used for unfolding
-main_data: '/rstorage/alice/AnalysisResults/ang/1110550/AnalysisResultsFinal.root'
-main_response: '/rstorage/alice/AnalysisResults/ang/1110651/Scaled_no_cuts/AnalysisResultsFinal.root'
-trkeff_response: '/rstorage/alice/AnalysisResults/ang/1110652/Scaled_no_cuts/AnalysisResultsFinal.root'
-randmass_data: '/rstorage/alice/AnalysisResults/ang/1110653/AnalysisResultsFinal.root'
-randmass_response: '/rstorage/alice/AnalysisResults/ang/1110654/Scaled_no_cuts/AnalysisResultsFinal.root'
+#main_data: '/rstorage/alice/AnalysisResults/ang/1110550/AnalysisResultsFinal.root'
+#main_response: '/rstorage/alice/AnalysisResults/ang/1110651/Scaled_no_cuts/AnalysisResultsFinal.root'
+#trkeff_response: '/rstorage/alice/AnalysisResults/ang/1110652/Scaled_no_cuts/AnalysisResultsFinal.root'
+#randmass_data: '/rstorage/alice/AnalysisResults/ang/1110653/AnalysisResultsFinal.root'
+#randmass_response: '/rstorage/alice/AnalysisResults/ang/1110654/Scaled_no_cuts/AnalysisResultsFinal.root'
 # fastsim order: PYTHIA, Herwig
-fastsim_response: ['/rstorage/alice/AnalysisResults/ang/1110655/Scaled_no_cuts/AnalysisResultsFinal.root',
-                   '/rstorage/alice/AnalysisResults/ang/1110656/Scaled_no_cuts/AnalysisResultsFinal.root']
+#fastsim_response: ['/rstorage/alice/AnalysisResults/ang/1110655/Scaled_no_cuts/AnalysisResultsFinal.root',
+#                   '/rstorage/alice/AnalysisResults/ang/1110656/Scaled_no_cuts/AnalysisResultsFinal.root']
 
 # Prior variation parameters
 prior_variation_option: 1
